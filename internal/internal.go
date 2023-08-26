@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
@@ -11,6 +13,8 @@ import (
 	"github.com/uchupx/kajian-auth/internal/repo"
 	"github.com/uchupx/kajian-auth/internal/service"
 	"github.com/uchupx/kajian-auth/internal/service/jwt"
+	"github.com/uchupx/kajian-auth/pb"
+	"google.golang.org/grpc"
 )
 
 type Internal struct {
@@ -22,7 +26,8 @@ type Internal struct {
 	userRepo *repo.UserRepo
 
 	// handler
-	authHandler *handler.AuthHandler
+	authHandler     *handler.AuthHandler
+	authGRPCHandler *handler.AuthGRPCHandler
 
 	// service
 	userService *service.UserService
@@ -50,7 +55,7 @@ func (i *Internal) DB(conf *config.Config) *sqlx.DB {
 func (i *Internal) RedisClient(conf *config.Config) *redis.Client {
 	if i.redisClient == nil {
 		redisClient, err := kajianRedis.NewRedisConn(kajianRedis.RedisConfig{
-			Host:     conf.Redis.Host,
+			Host:     fmt.Sprintf("%s:%s", conf.Redis.Host, conf.Redis.Port),
 			Password: conf.Redis.Password,
 			Database: 0,
 		})
@@ -75,11 +80,23 @@ func (i *Internal) AuthHandler(conf *config.Config) *handler.AuthHandler {
 	return i.authHandler
 }
 
+func (i *Internal) AuthGRPCHandler(conf *config.Config) *handler.AuthGRPCHandler {
+	if i.authGRPCHandler == nil {
+		i.authGRPCHandler = &handler.AuthGRPCHandler{
+			// UserService: i.UserService(conf),
+			JWTService: i.JWTService(conf),
+		}
+	}
+
+	return i.authGRPCHandler
+}
+
 func (i *Internal) UserService(conf *config.Config) *service.UserService {
 	if i.userService == nil {
 		i.userService = &service.UserService{
 			UserRepo: i.UserRepo(conf),
 			JWT:      i.JWTService(conf),
+			Redis:    i.RedisClient(conf),
 		}
 	}
 
@@ -112,4 +129,8 @@ func (i *Internal) InitRoutes(conf *config.Config, e *echo.Echo) {
 	for _, route := range routes {
 		route.InitRoutes(e)
 	}
+}
+
+func (i *Internal) InitRoutesGRPC(conf *config.Config, s *grpc.Server) {
+	pb.RegisterAuthorizationServiceServer(s, i.AuthGRPCHandler(conf))
 }

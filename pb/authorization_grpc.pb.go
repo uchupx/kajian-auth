@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthorizationServiceClient interface {
-	CredentialCheck(ctx context.Context, in *CredentialCheckRequest, opts ...grpc.CallOption) (*CredentialCheckResponse, error)
+	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
 }
 
 type authorizationServiceClient struct {
@@ -33,9 +33,9 @@ func NewAuthorizationServiceClient(cc grpc.ClientConnInterface) AuthorizationSer
 	return &authorizationServiceClient{cc}
 }
 
-func (c *authorizationServiceClient) CredentialCheck(ctx context.Context, in *CredentialCheckRequest, opts ...grpc.CallOption) (*CredentialCheckResponse, error) {
-	out := new(CredentialCheckResponse)
-	err := c.cc.Invoke(ctx, "/AuthorizationService/CredentialCheck", in, out, opts...)
+func (c *authorizationServiceClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error) {
+	out := new(GetUserResponse)
+	err := c.cc.Invoke(ctx, "/AuthorizationService/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (c *authorizationServiceClient) CredentialCheck(ctx context.Context, in *Cr
 // All implementations must embed UnimplementedAuthorizationServiceServer
 // for forward compatibility
 type AuthorizationServiceServer interface {
-	CredentialCheck(context.Context, *CredentialCheckRequest) (*CredentialCheckResponse, error)
+	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	mustEmbedUnimplementedAuthorizationServiceServer()
 }
 
@@ -54,8 +54,8 @@ type AuthorizationServiceServer interface {
 type UnimplementedAuthorizationServiceServer struct {
 }
 
-func (UnimplementedAuthorizationServiceServer) CredentialCheck(context.Context, *CredentialCheckRequest) (*CredentialCheckResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CredentialCheck not implemented")
+func (UnimplementedAuthorizationServiceServer) GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 func (UnimplementedAuthorizationServiceServer) mustEmbedUnimplementedAuthorizationServiceServer() {}
 
@@ -70,20 +70,20 @@ func RegisterAuthorizationServiceServer(s grpc.ServiceRegistrar, srv Authorizati
 	s.RegisterService(&AuthorizationService_ServiceDesc, srv)
 }
 
-func _AuthorizationService_CredentialCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CredentialCheckRequest)
+func _AuthorizationService_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthorizationServiceServer).CredentialCheck(ctx, in)
+		return srv.(AuthorizationServiceServer).GetUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/AuthorizationService/CredentialCheck",
+		FullMethod: "/AuthorizationService/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthorizationServiceServer).CredentialCheck(ctx, req.(*CredentialCheckRequest))
+		return srv.(AuthorizationServiceServer).GetUser(ctx, req.(*GetUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -96,8 +96,8 @@ var AuthorizationService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuthorizationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CredentialCheck",
-			Handler:    _AuthorizationService_CredentialCheck_Handler,
+			MethodName: "GetUser",
+			Handler:    _AuthorizationService_GetUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

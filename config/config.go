@@ -8,6 +8,11 @@ import (
 )
 
 type Config struct {
+	App struct {
+		Env      string
+		Port     string
+		GRPCPort string
+	}
 	Database struct {
 		Host     string
 		Port     string
@@ -50,6 +55,10 @@ func new() *Config {
 
 	config.RSA.Private = os.Getenv("RSA_PRIVATE_KEY")
 	config.RSA.Public = os.Getenv("RSA_PUBLIC_KEY")
+
+	config.App.Env = os.Getenv("APP_ENV")
+	config.App.Port = os.Getenv("APP_PORT")
+	config.App.GRPCPort = os.Getenv("APP_GRPC_PORT")
 	return config
 }
 

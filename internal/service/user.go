@@ -33,7 +33,7 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 
 	duration := 1 * time.Hour
 
-	if err := s.Redis.Set(ctx, "redis:auth:token", token, duration).Err(); err != nil {
+	if err := s.Redis.Set(ctx, "redis:auth:token", *token, duration).Err(); err != nil {
 		return nil, fmt.Errorf("[UserService - Login] error when set redis: %w", err)
 	}
 
