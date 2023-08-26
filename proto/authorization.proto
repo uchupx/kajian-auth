@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "/pb";
+
+service AuthorizationService {
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+}
+
+message GetUserRequest {
+    string token = 1;
+}
+
+message GetUserResponse {
+    bool isAuthorized = 1;
+    int32 id = 2;
+    string username = 3;
+    string email = 4;
+    string name = 5;
+    string createdAt = 6;
+}

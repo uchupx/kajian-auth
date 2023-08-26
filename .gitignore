@@ -1,0 +1,10 @@
+/vendor
+# IDE - VSCode
+.vscode/*
+
+# Dependency directory
+/vendor
+
+
+# Config
+.env
