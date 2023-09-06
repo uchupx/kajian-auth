@@ -17,6 +17,9 @@ func main() {
 	conf := config.GetConfig()
 	i := &internal.Internal{}
 
+	// initial logger
+	i.InitLogger(conf)
+
 	go runGRPCServer(conf, i)
 	runAPIServer(conf, e, i)
 }

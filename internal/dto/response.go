@@ -11,3 +11,8 @@ type TokenResponse struct {
 	Token   string `json:"token"`
 	Expired int64  `json:"expired"`
 }
+
+type EntityResponse struct {
+	Id     int64  `json:"id"`
+	Entity string `json:"entity"`
+}

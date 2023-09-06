@@ -3,13 +3,15 @@ package internal
 import (
 	"fmt"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
+	"github.com/uchupx/kajian-api/pkg/db"
+	"github.com/uchupx/kajian-api/pkg/logger"
 	"github.com/uchupx/kajian-api/pkg/mysql"
 	kajianRedis "github.com/uchupx/kajian-api/pkg/redis"
 	"github.com/uchupx/kajian-auth/config"
 	"github.com/uchupx/kajian-auth/internal/handler"
+	"github.com/uchupx/kajian-auth/internal/middlware"
 	"github.com/uchupx/kajian-auth/internal/repo"
 	"github.com/uchupx/kajian-auth/internal/service"
 	"github.com/uchupx/kajian-auth/internal/service/jwt"
@@ -19,11 +21,14 @@ import (
 
 type Internal struct {
 	// adapter
-	db          *sqlx.DB
+	db          *db.DB
 	redisClient *redis.Client
 
 	// repo
 	userRepo *repo.UserRepo
+
+	//middlware
+	middlware *middlware.Middleware
 
 	// handler
 	authHandler     *handler.AuthHandler
@@ -34,7 +39,7 @@ type Internal struct {
 	jwtService  jwt.CryptService
 }
 
-func (i *Internal) DB(conf *config.Config) *sqlx.DB {
+func (i *Internal) DB(conf *config.Config) *db.DB {
 	if i.db == nil {
 		db, err := mysql.NewConnection(mysql.DBPayload{
 			Host:     conf.Database.Host,
@@ -47,6 +52,7 @@ func (i *Internal) DB(conf *config.Config) *sqlx.DB {
 			panic(err)
 		}
 
+		db.SetDebug(i.isDebug(conf))
 		i.db = db
 	}
 	return i.db
@@ -83,8 +89,7 @@ func (i *Internal) AuthHandler(conf *config.Config) *handler.AuthHandler {
 func (i *Internal) AuthGRPCHandler(conf *config.Config) *handler.AuthGRPCHandler {
 	if i.authGRPCHandler == nil {
 		i.authGRPCHandler = &handler.AuthGRPCHandler{
-			// UserService: i.UserService(conf),
-			JWTService: i.JWTService(conf),
+			UserService: i.UserService(conf),
 		}
 	}
 
@@ -123,9 +128,20 @@ func (i *Internal) UserRepo(conf *config.Config) *repo.UserRepo {
 	return i.userRepo
 }
 
+func (i *Internal) Middlware(conf *config.Config) *middlware.Middleware {
+	if i.middlware == nil {
+		i.middlware = middlware.New(middlware.Config{})
+	}
+
+	return i.middlware
+}
+
 func (i *Internal) InitRoutes(conf *config.Config, e *echo.Echo) {
 	routes := []handler.BaseHandler{i.AuthHandler(conf)}
-
+	i.Middlware(conf)
+	// e.Use(i.middlware.Logger)
+	// eMiddleware.CORSWithConfig(eMiddleware.CORSConfig{})
+	e.Use(i.middlware.Recover)
 	for _, route := range routes {
 		route.InitRoutes(e)
 	}
@@ -133,4 +149,18 @@ func (i *Internal) InitRoutes(conf *config.Config, e *echo.Echo) {
 
 func (i *Internal) InitRoutesGRPC(conf *config.Config, s *grpc.Server) {
 	pb.RegisterAuthorizationServiceServer(s, i.AuthGRPCHandler(conf))
+}
+
+func (i *Internal) InitLogger(conf *config.Config) {
+	logConf := logger.LogConfig{
+		Path:    conf.App.Log,
+		NameApp: "kajian-auth",
+	}
+
+	logConf.SetDebug(i.isDebug(conf))
+	logger.InitLog(logConf)
+}
+
+func (i *Internal) isDebug(conf *config.Config) bool {
+	return conf.App.Env == "dev"
 }

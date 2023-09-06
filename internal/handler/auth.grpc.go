@@ -2,18 +2,17 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/uchupx/kajian-auth/internal/dto"
-	"github.com/uchupx/kajian-auth/internal/service/jwt"
+	"github.com/uchupx/kajian-auth/internal/service"
 	"github.com/uchupx/kajian-auth/pb"
 )
 
 type AuthGRPCHandler struct {
 	pb.AuthorizationServiceServer
-	JWTService jwt.CryptService
+	UserService *service.UserService
 }
 
+// GetUser is a function to get user data from jwt token (GRPC)
 func (h *AuthGRPCHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
 	res := pb.GetUserResponse{}
 	res.IsAuthorized = false
@@ -23,19 +22,8 @@ func (h *AuthGRPCHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (
 		return &res, nil
 	}
 
-	resToken, err := h.JWTService.VerifyJWTToken(jwtToken)
+	user, err := h.UserService.RetrieveUser(ctx, jwtToken)
 	if err != nil {
-		return &res, nil
-	}
-
-	bytes, err := json.Marshal(resToken)
-	if err != nil {
-		return &res, nil
-	}
-
-	var user dto.User
-
-	if err := json.Unmarshal(bytes, &user); err != nil {
 		return &res, nil
 	}
 

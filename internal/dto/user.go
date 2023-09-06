@@ -8,6 +8,7 @@ import (
 
 type User struct {
 	ID       int64     `json:"id"`
+	Password string    `json:"-"`
 	Username string    `json:"username"`
 	Email    string    `json:"email"`
 	Created  time.Time `json:"created"`
@@ -20,4 +21,16 @@ func (u *User) Model(p *model.User) {
 	u.Email = p.Email.String
 	u.Created = p.CreatedAt.Time
 	u.Updated = p.UpdatedAt.Time
+}
+
+func (u *User) ToModel() model.User {
+	var m model.User
+
+	m.ID.Int64 = u.ID
+	m.Username.String = u.Username
+	m.Email.String = u.Email
+	m.CreatedAt.Time = u.Created
+	m.UpdatedAt.Time = u.Updated
+
+	return m
 }

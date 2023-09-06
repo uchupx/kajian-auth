@@ -12,6 +12,7 @@ type Config struct {
 		Env      string
 		Port     string
 		GRPCPort string
+		Log      string
 	}
 	Database struct {
 		Host     string
@@ -59,6 +60,7 @@ func new() *Config {
 	config.App.Env = os.Getenv("APP_ENV")
 	config.App.Port = os.Getenv("APP_PORT")
 	config.App.GRPCPort = os.Getenv("APP_GRPC_PORT")
+	config.App.Log = os.Getenv("APP_LOG")
 	return config
 }
 
