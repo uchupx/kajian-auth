@@ -11,7 +11,7 @@ import (
 
 const (
 	findUserByUsernameEmailQuery = "SELECT * FROM users WHERE username = ? OR email = ?"
-	insertUserQuery              = "INSERT INTO users(username, password, email) VALUES (?, ?, ?)"
+	insertUserQuery              = "INSERT INTO users(username, password, email, created_at) VALUES (?, ?, ?, ?)"
 )
 
 type UserRepo struct {
@@ -48,9 +48,10 @@ func (r *UserRepo) Insert(ctx context.Context, data model.User) (*int64, error) 
 	defer stmt.Close()
 
 	row, err := stmt.FExecContext(ctx,
-		data.Username,
-		data.Password,
-		data.Email,
+		data.Username.String,
+		data.Password.String,
+		data.Email.String,
+		data.CreatedAt.Time,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute statement: %w", err)

@@ -28,6 +28,7 @@ func (u *User) ToModel() model.User {
 
 	m.ID.Int64 = u.ID
 	m.Username.String = u.Username
+	m.Password.String = u.Password
 	m.Email.String = u.Email
 	m.CreatedAt.Time = u.Created
 	m.UpdatedAt.Time = u.Updated

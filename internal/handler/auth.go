@@ -12,6 +12,7 @@ type AuthHandler struct {
 
 func (a *AuthHandler) InitRoutes(e *echo.Echo) {
 	e.POST("/token", a.Auth)
+	e.POST("/sign-up", a.SignUp)
 }
 
 func (a *AuthHandler) Auth(c echo.Context) error {

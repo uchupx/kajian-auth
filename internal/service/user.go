@@ -26,12 +26,12 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 		return nil, fmt.Errorf("[UserService - Login] error when find user by username: %w", err)
 	}
 
-	sign, err := s.JWT.CreateSignPSS(req.Password)
-	if err != nil {
-		return nil, fmt.Errorf("[UserService - Login] error when create signature password: %w", err)
-	}
+	// sign, err := s.JWT.CreateSignPSS(req.Password)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("[UserService - Login] error when create signature password: %w", err)
+	// }
 
-	isValid, err := s.JWT.Verify(sign, model.Password.String)
+	isValid, err := s.JWT.Verify(req.Password, model.Password.String)
 	if err != nil {
 		return nil, fmt.Errorf("[UserService - Login] error when verify value: %w", err)
 	}
