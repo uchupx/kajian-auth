@@ -7,6 +7,11 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var configPath = []string{
+	"./",
+	"/var/config/",
+}
+
 type Config struct {
 	App struct {
 		Env      string
@@ -38,7 +43,16 @@ var config *Config
 
 // NewConfig is a constructor for Config
 func new() *Config {
-	if err := godotenv.Load(".env"); err != nil {
+	var err error
+	for _, c := range configPath {
+		err = godotenv.Load(c + ".env")
+		if err != nil {
+			log.Printf("failed to laod config from path %s.env", c)
+			continue
+		}
+		break
+	}
+	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
 

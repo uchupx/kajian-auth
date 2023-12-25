@@ -4,6 +4,8 @@
 
 # Dependency directory
 /vendor
+/server_config
+/redis_data
 
 
 # Config

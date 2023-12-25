@@ -39,7 +39,10 @@ func runGRPCServer(conf *config.Config, i *internal.Internal) {
 
 	s := grpc.NewServer()
 	i.InitRoutesGRPC(conf, s)
-	fmt.Println("Server is running at port 8081")
+
+	fmt.Printf("Server is running at port %s \n", conf.App.Port)
+	fmt.Printf("GRPC Server is running at port %s \n", conf.App.GRPCPort)
+
 	if err := s.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
@@ -41,19 +42,30 @@ type Internal struct {
 
 func (i *Internal) DB(conf *config.Config) *db.DB {
 	if i.db == nil {
-		db, err := mysql.NewConnection(mysql.DBPayload{
-			Host:     conf.Database.Host,
-			Port:     conf.Database.Port,
-			Username: conf.Database.User,
-			Password: conf.Database.Password,
-			Database: conf.Database.Name,
-		})
-		if err != nil {
-			panic(err)
-		}
+		for idx := 1; idx == 3; idx++ {
+			db, err := mysql.NewConnection(mysql.DBPayload{
+				Host:     conf.Database.Host,
+				Port:     conf.Database.Port,
+				Username: conf.Database.User,
+				Password: conf.Database.Password,
+				Database: conf.Database.Name,
+			})
+			if err != nil {
+				fmt.Println(err)
+				time.Sleep(2 * time.Second)
+				fmt.Println("Retry connection")
 
-		db.SetDebug(i.isDebug(conf))
-		i.db = db
+				if idx == 3 {
+					panic(err)
+				}
+
+				continue
+			}
+
+			db.SetDebug(i.isDebug(conf))
+			i.db = db
+			break
+		}
 	}
 	return i.db
 }
