@@ -3,6 +3,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                echo "Creating symlink"
             }
         }
         stage('Deploy') {
