@@ -2,6 +2,8 @@ version: "3"
 
 services:
   kajian-auth:
+    image: ${LOCAL_REGISTRY}/kajian-auth
+    container_name: kajian_auth
     build: .
     ports:
       - "5001:80"
