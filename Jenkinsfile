@@ -16,7 +16,7 @@ pipeline {
                 echo "Creating symlink for env"
                 sh "mkdir ${ENV_PATH}/kajian_auth"
                 sh "ln -s ${ENV_PATH}/.env.kajian-auth ${ENV_PATH}/kajian_auth/.env"
-                sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.kajian-auth -e ENV_PATH=${ENV_PATH} up --build -d"
+                sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.kajian-auth up --build -d"
                 // sh "ssh -i ${JENKINS_HOME}/light-sail.pem ${LIGHTSAIL_USER}@${LIGHTSAIL_HOST} 'ln -s ${HTML_PATH}/portofolio_build/${BUILD_NUMBER} ${HTML_PATH}/portofolio'"
             }
         }
