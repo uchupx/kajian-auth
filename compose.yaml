@@ -24,7 +24,7 @@ services:
       - MYSQL_PASSWORD=${DATABASE_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-      - env-volume:/var/config
+      - env_volume:/var/config
     networks:
       - my_network
 
@@ -44,4 +44,6 @@ networks:
 
 volumes:
   db_data:
-  env-volume:
+  env_volume:
+    external: true
+    name: env-volume
