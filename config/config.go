@@ -10,7 +10,7 @@ import (
 var configPath = []string{
 	"./",
 	// "/var/config/",
-	"/var/config/kajian_auth",
+	"/var/config/kajian_auth/",
 }
 
 type Config struct {
