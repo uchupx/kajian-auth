@@ -13,6 +13,7 @@ pipeline {
                 echo "Deploying...."
                 echo "Push to local registry"
                 sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.kajian-auth push kajian-auth"
+                sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.kajian-auth up --build -d"
                 // sh "ssh -i ${JENKINS_HOME}/light-sail.pem ${LIGHTSAIL_USER}@${LIGHTSAIL_HOST} 'ln -s ${HTML_PATH}/portofolio_build/${BUILD_NUMBER} ${HTML_PATH}/portofolio'"
             }
         }
