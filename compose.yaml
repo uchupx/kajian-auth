@@ -10,7 +10,7 @@ services:
     networks:
       - my_network
     volumes:
-      - ./server_config:/var/config
+      - ${ENV_PATH}:/var/config
       - /usr/local/var/log:/var/log
     depends_on:
       - database
