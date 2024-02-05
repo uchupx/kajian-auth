@@ -28,7 +28,7 @@ services:
     networks:
       database-network:
         ipv4_address: 172.23.0.101
-      - my_network
+      my_network:
 
   redis:
     image: redis:latest
