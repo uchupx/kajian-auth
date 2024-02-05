@@ -27,7 +27,7 @@ services:
       - env_volume:/var/config
     networks:
       database-network:
-        ipv4_address: 172.23.0.101
+        ipv4_address: 192.168.123.101
       my_network:
 
   redis:
