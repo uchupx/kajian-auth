@@ -26,6 +26,8 @@ services:
       - db_data:/var/lib/mysql
       - env_volume:/var/config
     networks:
+      database-network:
+        ipv4_address: 172.23.0.101
       - my_network
 
   redis:
@@ -40,6 +42,9 @@ services:
 
 networks:
   my_network:
+    driver: bridge
+  database-network:
+    external: true
     driver: bridge
 
 volumes:
