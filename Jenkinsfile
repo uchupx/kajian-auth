@@ -21,6 +21,11 @@ pipeline {
                 // sh "ssh -i ${JENKINS_HOME}/light-sail.pem ${LIGHTSAIL_USER}@${LIGHTSAIL_HOST} 'ln -s ${HTML_PATH}/portofolio_build/${BUILD_NUMBER} ${HTML_PATH}/portofolio'"
             }
         }
+        stage('Migrations') {
+            steps {
+                build job: "kajian-auth-migration", wait: false
+            }
+        }
     }
     post {
         always {

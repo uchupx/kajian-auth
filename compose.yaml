@@ -38,7 +38,7 @@ services:
     networks:
       - my_network
     volumes:
-      - ./redis_data:/data
+      - redis-data:/data
 
 networks:
   my_network:
@@ -48,7 +48,11 @@ networks:
     driver: bridge
 
 volumes:
+  redis-data:
+    external: true
   db_data:
+    external: true
+    name: mysql-data
   env_volume:
     external: true
     name: env-volume

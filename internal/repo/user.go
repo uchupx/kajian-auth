@@ -11,10 +11,11 @@ import (
 
 const (
 	findUserByUsernameEmailQuery = "SELECT * FROM users WHERE username = ? OR email = ?"
-	insertUserQuery              = "INSERT INTO users(username, password, email, created_at) VALUES (?, ?, ?, ?)"
+	insertUserQuery              = "INSERT INTO users(id, username, password, email, created_at) VALUES (?, ?, ?, ?, ?)"
 )
 
 type UserRepo struct {
+	BaseRepo
 	db *db.DB
 }
 
@@ -39,15 +40,18 @@ func (r *UserRepo) FindUserByUsernameEmail(ctx context.Context, val string) (*mo
 	return &user, nil
 }
 
-func (r *UserRepo) Insert(ctx context.Context, data model.User) (*int64, error) {
+func (r *UserRepo) Insert(ctx context.Context, data model.User) (*string, error) {
 	stmt, err := r.db.FPreparexContext(ctx, insertUserQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare statement: %w", err)
 	}
 
+	id := r.ID()
+
 	defer stmt.Close()
 
-	row, err := stmt.FExecContext(ctx,
+	_, err = stmt.FExecContext(ctx,
+		id,
 		data.Username.String,
 		data.Password.String,
 		data.Email.String,
@@ -57,12 +61,7 @@ func (r *UserRepo) Insert(ctx context.Context, data model.User) (*int64, error) 
 		return nil, fmt.Errorf("failed to execute statement: %w", err)
 	}
 
-	lastId, err := row.LastInsertId()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	return &lastId, nil
+	return id, nil
 }
 
 func NewUserRepo(db *db.DB) *UserRepo {

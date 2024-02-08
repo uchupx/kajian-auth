@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	ID       int64     `json:"id"`
+	ID       string    `json:"id"`
 	Password string    `json:"-"`
 	Username string    `json:"username"`
 	Email    string    `json:"email"`
@@ -16,7 +16,7 @@ type User struct {
 }
 
 func (u *User) Model(p *model.User) {
-	u.ID = p.ID.Int64
+	u.ID = p.ID.String
 	u.Username = p.Username.String
 	u.Email = p.Email.String
 	u.Created = p.CreatedAt.Time
@@ -26,7 +26,7 @@ func (u *User) Model(p *model.User) {
 func (u *User) ToModel() model.User {
 	var m model.User
 
-	m.ID.Int64 = u.ID
+	m.ID.String = u.ID
 	m.Username.String = u.Username
 	m.Password.String = u.Password
 	m.Email.String = u.Email

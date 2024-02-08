@@ -28,7 +28,7 @@ func (h *AuthGRPCHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (
 	}
 
 	res.IsAuthorized = true
-	res.Id = int32(user.ID)
+	res.Id = user.ID
 	res.Username = user.Username
 	res.Email = user.Email
 	res.Name = ""

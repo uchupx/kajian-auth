@@ -1,5 +1,5 @@
 package enums
 
 const (
-	RedisKeyAuthorizationToken = "reids:auth:token"
+	RedisKeyAuthorizationToken = "redis:auth:token:%s"
 )

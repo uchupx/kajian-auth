@@ -11,6 +11,7 @@ import (
 	"github.com/uchupx/kajian-auth/internal/dto"
 	"github.com/uchupx/kajian-auth/internal/repo"
 	"github.com/uchupx/kajian-auth/internal/service/jwt"
+	"github.com/uchupx/kajian-auth/pkg/enums"
 )
 
 type UserService struct {
@@ -49,7 +50,7 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 
 	duration := 1 * time.Hour
 
-	if err := s.Redis.Set(ctx, "redis:auth:token", *token, duration).Err(); err != nil {
+	if err := s.Redis.Set(ctx, fmt.Sprintf(enums.RedisKeyAuthorizationToken, model.ID.String), *token, duration).Err(); err != nil {
 		return nil, fmt.Errorf("[UserService - Login] error when set redis: %w", err)
 	}
 

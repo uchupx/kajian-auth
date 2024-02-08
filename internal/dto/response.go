@@ -13,6 +13,6 @@ type TokenResponse struct {
 }
 
 type EntityResponse struct {
-	Id     int64  `json:"id"`
-	Entity string `json:"entity"`
+	Id     interface{} `json:"id"`
+	Entity string      `json:"entity"`
 }

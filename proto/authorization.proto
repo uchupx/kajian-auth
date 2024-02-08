@@ -12,7 +12,7 @@ message GetUserRequest {
 
 message GetUserResponse {
     bool isAuthorized = 1;
-    int32 id = 2;
+    string id = 2;
     string username = 3;
     string email = 4;
     string name = 5;
