@@ -23,7 +23,7 @@ pipeline {
         }
         stage('Migrations') {
             steps {
-                build job: "Kajian/kajian-auth-migration", wait: false
+                build job: "Kajian/Kajian-auth-migration", wait: false
             }
         }
     }
