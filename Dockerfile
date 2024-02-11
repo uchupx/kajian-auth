@@ -23,7 +23,7 @@ RUN go install golang.org/x/vuln/cmd/govulncheck@latest
 # Security Check
 RUN gosec ./..
 # Depedencies check
-RUN govulncheck ./...
+RUN govulncheck -scan=package ./...
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /main .
 
