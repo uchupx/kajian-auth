@@ -21,9 +21,9 @@ RUN go install github.com/securego/gosec/v2/cmd/gosec@latest
 RUN go install golang.org/x/vuln/cmd/govulncheck@latest
 
 # Security Check
-CMD gosec ./..
+RUN gosec ./..
 # Depedencies check
-CMD govulncheck ./...
+RUN govulncheck ./...
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /main .
 
