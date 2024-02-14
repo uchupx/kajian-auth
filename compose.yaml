@@ -56,6 +56,6 @@ volumes:
   env_volume:
     external: true
     name: ${ENV_VOL}
-  logs-volume:
+  log-vol:
     external: true
     name: ${LOG_VOL}

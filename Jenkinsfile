@@ -4,7 +4,6 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Building....."
-                sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.kajian-auth build"
                 echo "Success build image"
             }
         }
