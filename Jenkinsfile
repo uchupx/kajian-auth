@@ -1,24 +1,25 @@
 pipeline {
     agent any
     stages {
-        stage('Build') {
+        stage('Preparing') {
             steps {
-                echo "Building....."
-                echo "Success build image"
+                echo "Preparing ENV"
+                echo "Job name : ${JOB_BASE_NAME}"
+                echo "Build number : ${BUILD_DISPLAY_NAME}"
+                echo "Git commit : ${GIT_COMMIT}"
+                echo "Git branch : ${GIT_BRANCH}"
+		        sh "cp ${ENV_PATH}/.env.${JOB_BASE_NAME}  ${TEMP_PATH}/.env.${GIT_COMMIT}"
+                sh "cat ${ENV_PATH}/.env.docker | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}"
+		        sh "mkdir -p ${ENV_PATH}/${JOB_BASE_NAME}"
+                sh "rm ${ENV_PATH}/${JOB_BASE_NAME}/.env"
+                sh "cp ${ENV_PATH}/.env.${JOB_BASE_NAME} ${ENV_PATH}/${JOB_BASE_NAME}/.env"
             }
         }
         stage('Deploy') {
             steps {
                 echo "Deploying...."
-                echo "Push to local registry"
-                echo "Preparing ENV"
-		sh "cp ${ENV_PATH}/.env.kajian-auth  ${ENV_PATH}/.env.${GIT_COMMIT}"
-                sh "cat ${ENV_PATH}/.env.docker | tee -a ${ENV_PATH}/.env.${GIT_COMMIT}"
-		sh "mkdir -p ${ENV_PATH}/kajian_auth"
-                sh "rm ${ENV_PATH}/kajian_auth/.env"
-                sh "cp ${ENV_PATH}/.env.kajian-auth ${ENV_PATH}/kajian_auth/.env"
-                sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.${GIT_COMMIT} up --build -d"
-                // sh "ssh -i ${JENKINS_HOME}/light-sail.pem ${LIGHTSAIL_USER}@${LIGHTSAIL_HOST} 'ln -s ${HTML_PATH}/portofolio_build/${BUILD_NUMBER} ${HTML_PATH}/portofolio'"
+                // echo "Push to local registry"
+                sh "/usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} up --build -d"
             }
         }
         stage('Migrations') {
@@ -30,8 +31,8 @@ pipeline {
     post {
         always {
             echo 'One way or another, I have finished'
-	    echo "Deleting meta files"
-	    sh "rm ${ENV_PATH}/.env.${GIT_COMMIT}"
+            echo "Deleting meta files"
+            sh "rm ${TEMP_PATH}/.env.${GIT_COMMIT}"
             deleteDir() /* clean up our workspace */
         }
         success {
