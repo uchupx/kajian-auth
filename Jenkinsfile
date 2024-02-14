@@ -11,7 +11,7 @@ pipeline {
 		        sh "cp ${ENV_PATH}/.env.${JOB_BASE_NAME}  ${TEMP_PATH}/.env.${GIT_COMMIT}"
                 sh "cat ${ENV_PATH}/.env.docker | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}"
 		        sh "mkdir -p ${ENV_PATH}/${JOB_BASE_NAME}"
-                sh "rm ${ENV_PATH}/${JOB_BASE_NAME}/.env"
+                sh "rm ${ENV_PATH}/${JOB_BASE_NAME}/.env || true"
                 sh "cp ${ENV_PATH}/.env.${JOB_BASE_NAME} ${ENV_PATH}/${JOB_BASE_NAME}/.env"
             }
         }
