@@ -12,7 +12,7 @@ pipeline {
                 echo "Deploying...."
                 echo "Push to local registry"
                 echo "Preparing ENV"
-		sh "cat ${ENV_PATH}/.env.kajian-auth ${ENV_PATH}/.env.docker > .env.${GIT_COMMIT}"
+		sh "cat ${ENV_PATH}/.env.kajian-auth ${ENV_PATH}/.env.docker >> .env.${GIT_COMMIT}"
                 sh "mkdir -p ${ENV_PATH}/kajian_auth"
                 sh "rm ${ENV_PATH}/kajian_auth/.env"
                 sh "cp ${ENV_PATH}/.env.kajian-auth ${ENV_PATH}/kajian_auth/.env"
