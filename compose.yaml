@@ -11,7 +11,7 @@ services:
       - my_network
     volumes:
       - /usr/env:/var/config
-      - /usr/local/var/log:/var/log
+      - log-vol:/var/log
     depends_on:
       - database
 
@@ -52,7 +52,10 @@ volumes:
     external: true
   db_data:
     external: true
-    name: mysql-data
+    name: ${MYSQL_DATA_VOL}
   env_volume:
     external: true
-    name: env-volume
+    name: ${ENV_VOL}
+  logs-volume:
+    external: true
+    name: ${LOG_VOL}

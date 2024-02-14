@@ -12,12 +12,12 @@ pipeline {
             steps {
                 echo "Deploying...."
                 echo "Push to local registry"
-                sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.kajian-auth push kajian-auth"
-                echo "Creating symlink for env"
+                echo "Preparing ENV"
+		sh "cat ${ENV_PATH}/.env.kajian-auth ${ENV_PATH}/.env.docker > .env.${GIT_COMMIT}"
                 sh "mkdir -p ${ENV_PATH}/kajian_auth"
                 sh "rm ${ENV_PATH}/kajian_auth/.env"
                 sh "cp ${ENV_PATH}/.env.kajian-auth ${ENV_PATH}/kajian_auth/.env"
-                sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.kajian-auth up --build -d"
+                sh "/usr/local/bin/docker-compose  --env-file ${ENV_PATH}/.env.${GIT_COMMIT} up --build -d"
                 // sh "ssh -i ${JENKINS_HOME}/light-sail.pem ${LIGHTSAIL_USER}@${LIGHTSAIL_HOST} 'ln -s ${HTML_PATH}/portofolio_build/${BUILD_NUMBER} ${HTML_PATH}/portofolio'"
             }
         }
@@ -30,6 +30,8 @@ pipeline {
     post {
         always {
             echo 'One way or another, I have finished'
+	    echo "Deleting meta files"
+	    sh "rm ${ENV_PATH}/.env.${GIT_COMMIT}"
             deleteDir() /* clean up our workspace */
         }
         success {
