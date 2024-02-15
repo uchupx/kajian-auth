@@ -31,15 +31,16 @@ pipeline {
                     echo "## Git Repository Name: ${repoName}"
                     echo "## Git Branch         : ${BRANCH_NAME}"
                     echo "## App Version        : ${version}"
-                    echo "set version to enviroment"
                     sh "echo 'VERSION=${version}' | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}"
                     sh  """
                             if [ "${BRANCH_NAME}" == "main" ] [ "${BRANCH_NAME}" == "master" ]
                             then
                             echo "Production Enviroment"
+                            echo 'VERSION=${version}' | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}
                             /usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} push ${repoName}:${version}
                             else
                             echo "Development Enviroment"
+                            echo 'VERSION=${version}-dev' | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}
                             /usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} push ${repoName}:${version}-dev
                             fi
                         """
