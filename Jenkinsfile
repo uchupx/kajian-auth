@@ -31,6 +31,8 @@ pipeline {
                     echo "## Git Repository Name: ${repoName}"
                     echo "## Git Branch         : ${BRANCH_NAME}"
                     echo "## App Version        : ${version}"
+                    echo "set version to enviroment"
+                    sh "echo 'VERSION=${version}' | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}"
                     sh  """
                             if [ "${BRANCH_NAME}" == "main" ] [ "${BRANCH_NAME}" == "master" ]
                             then

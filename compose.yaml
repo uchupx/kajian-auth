@@ -2,7 +2,7 @@ version: "3"
 
 services:
   kajian-auth:
-    image: ${LOCAL_REGISTRY}/kajian-auth
+    image: ${LOCAL_REGISTRY}/kajian-auth:${VERSION}
     container_name: kajian_auth
     build: .
     ports:
