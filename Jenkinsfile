@@ -23,7 +23,7 @@ pipeline {
                     def repoName = gitRepoUrl.replaceAll('.*/(.*?)(\\.git)?$', '$1')
                     def filePath = './version'
                     def version = readFile(filePath).trim()
-                    def BRANCH_NAME = env.BRANCH_NAME
+                    def BRANCH_NAME = env.GIT_BRANCH
                     def TEMP_PATH = env.TEMP_PATH
                     def GIT_COMMIT = env.GIT_COMMIT
 
