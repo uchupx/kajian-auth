@@ -24,13 +24,10 @@ pipeline {
                     def filePath = './version'
                     def version = readFile(filePath).trim()
 
-                    // Read the contents of the file
 
-                    // Print the value read from the file
-                    echo "Value from text file: ${fileContent}"
-                    // Printing the repository name
                     echo "## Git Repository Name: ${repoName}"
-                    echo "## Git Branch : ${BRANCH_NAME}"
+                    echo "## Git Branch         : ${BRANCH_NAME}"
+                    echo "## App Version        : ${version}"
                     sh  """
                             if [ "${BRANCH_NAME}" == "main" ] [ "${BRANCH_NAME}" == "master" ]
                             then
