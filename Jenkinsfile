@@ -39,15 +39,15 @@ pipeline {
                     echo "## App Version        : ${version}"
                     sh "echo 'VERSION=${version}' | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}"
                     sh  """
-                            if [ "${BRANCH_NAME}" == "origin/main" ] [ "${BRANCH_NAME}" == "origin/master" ]
+                            if [ "${BRANCH_NAME}" = "origin/main" ] || [ "${BRANCH_NAME}" = "origin/master" ]
                             then
                             echo "Production Enviroment"
                             docker tag ${LOCAL_REGISTRY}/${repoName}:latest ${LOCAL_REGISTRY}/${repoName}:${version}
-                            docker push${LOCAL_REGISTRY}/${repoName}:${version}
+                            docker push ${LOCAL_REGISTRY}/${repoName}:${version}
                             else
                             echo "Development Enviroment"
                             docker tag ${LOCAL_REGISTRY}/${repoName}:latest ${LOCAL_REGISTRY}/${repoName}:${version}-dev
-                            docker push${LOCAL_REGISTRY}/${repoName}:${version}-dev
+                            docker push ${LOCAL_REGISTRY}/${repoName}:${version}-dev
                             fi
                         """
                 }
