@@ -42,12 +42,12 @@ pipeline {
                             if [ "${BRANCH_NAME}" == "origin/main" ] [ "${BRANCH_NAME}" == "origin/master" ]
                             then
                             echo "Production Enviroment"
-                            /usr/local/bin/docker tag ${LOCAL_REGISTRY}/${repoName}:latest ${LOCAL_REGISTRY}/${repoName}:${version}
-                            /usr/local/bin/docker push${LOCAL_REGISTRY}/${repoName}:${version}
+                            docker tag ${LOCAL_REGISTRY}/${repoName}:latest ${LOCAL_REGISTRY}/${repoName}:${version}
+                            docker push${LOCAL_REGISTRY}/${repoName}:${version}
                             else
                             echo "Development Enviroment"
-                            /usr/local/bin/docker tag ${LOCAL_REGISTRY}/${repoName}:latest ${LOCAL_REGISTRY}/${repoName}:${version}-dev
-                            /usr/local/bin/docker push${LOCAL_REGISTRY}/${repoName}:${version}-dev
+                            docker tag ${LOCAL_REGISTRY}/${repoName}:latest ${LOCAL_REGISTRY}/${repoName}:${version}-dev
+                            docker push${LOCAL_REGISTRY}/${repoName}:${version}-dev
                             fi
                         """
                 }
