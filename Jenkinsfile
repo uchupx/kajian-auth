@@ -15,6 +15,12 @@ pipeline {
                 sh "cp ${ENV_PATH}/.env.${JOB_BASE_NAME} ${ENV_PATH}/${JOB_BASE_NAME}/.env"
             }
         }
+        stage('Build') {
+            steps {
+                echo "Build"
+                sh "/usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} build"
+            }
+        }
         stage('Push') {
             steps {
                 script {
@@ -33,15 +39,15 @@ pipeline {
                     echo "## App Version        : ${version}"
                     sh "echo 'VERSION=${version}' | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}"
                     sh  """
-                            if [ "${BRANCH_NAME}" == "main" ] [ "${BRANCH_NAME}" == "master" ]
+                            if [ "${BRANCH_NAME}" == "origin/main" ] [ "${BRANCH_NAME}" == "origin/master" ]
                             then
                             echo "Production Enviroment"
-                            echo 'VERSION=${version}' | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}
-                            /usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} push ${repoName}:${version}
+                            /usr/local/bin/docker tag ${LOCAL_REGISTRY}/${repoName}:latest ${LOCAL_REGISTRY}/${repoName}:${version}
+                            /usr/local/bin/docker push${LOCAL_REGISTRY}/${repoName}:${version}
                             else
                             echo "Development Enviroment"
-                            echo 'VERSION=${version}-dev' | tee -a ${TEMP_PATH}/.env.${GIT_COMMIT}
-                            /usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} push ${repoName}:${version}-dev
+                            /usr/local/bin/docker tag ${LOCAL_REGISTRY}/${repoName}:latest ${LOCAL_REGISTRY}/${repoName}:${version}-dev
+                            /usr/local/bin/docker push${LOCAL_REGISTRY}/${repoName}:${version}-dev
                             fi
                         """
                 }
@@ -51,7 +57,7 @@ pipeline {
             steps {
                 echo "Deploying...."
                 // echo "Push to local registry"
-                sh "/usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} up --build -d"
+                sh "/usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} up -d"
             }
         }
         stage('Migrations') {
