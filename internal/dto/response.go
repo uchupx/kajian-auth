@@ -8,8 +8,11 @@ type Response struct {
 }
 
 type TokenResponse struct {
-	Token   string `json:"token"`
-	Expired int64  `json:"expired"`
+	Token        string  `json:"access_token"`
+	TokenType    string  `json:"token_type"`
+	Expired      int64   `json:"expired"`
+	RefreshToken string  `json:"refresh_token"`
+	Scope        *string `json:"scope"`
 }
 
 type EntityResponse struct {

@@ -6,7 +6,8 @@ type AuthRequest struct {
 }
 
 type SignUpRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	Email     string `json:"email"`
+	ClientKey string `json:"client_key"`
 }

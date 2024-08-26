@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -26,7 +27,8 @@ type Internal struct {
 	redisClient *redis.Client
 
 	// repo
-	userRepo *repo.UserRepo
+	userRepo   *repo.UserRepo
+	clientRepo *repo.ClientRepo
 
 	//middlware
 	middlware *middlware.Middleware
@@ -42,7 +44,8 @@ type Internal struct {
 
 func (i *Internal) DB(conf *config.Config) *db.DB {
 	if i.db == nil {
-		for idx := 1; idx == 3; idx++ {
+		fmt.Printf("test")
+		for idx := 1; idx <= 3; idx++ {
 			db, err := mysql.NewConnection(mysql.DBPayload{
 				Host:     conf.Database.Host,
 				Port:     conf.Database.Port,
@@ -111,9 +114,10 @@ func (i *Internal) AuthGRPCHandler(conf *config.Config) *handler.AuthGRPCHandler
 func (i *Internal) UserService(conf *config.Config) *service.UserService {
 	if i.userService == nil {
 		i.userService = &service.UserService{
-			UserRepo: i.UserRepo(conf),
-			JWT:      i.JWTService(conf),
-			Redis:    i.RedisClient(conf),
+			UserRepo:   i.UserRepo(conf),
+			JWT:        i.JWTService(conf),
+			Redis:      i.RedisClient(conf),
+			ClientRepo: i.ClientRepo(conf),
 		}
 	}
 
@@ -140,6 +144,14 @@ func (i *Internal) UserRepo(conf *config.Config) *repo.UserRepo {
 	return i.userRepo
 }
 
+func (i *Internal) ClientRepo(conf *config.Config) *repo.ClientRepo {
+	if i.clientRepo == nil {
+		i.clientRepo = repo.NewClientRepo(i.DB(conf))
+	}
+
+	return i.clientRepo
+}
+
 func (i *Internal) Middlware(conf *config.Config) *middlware.Middleware {
 	if i.middlware == nil {
 		i.middlware = middlware.New(middlware.Config{})
@@ -154,6 +166,10 @@ func (i *Internal) InitRoutes(conf *config.Config, e *echo.Echo) {
 	// e.Use(i.middlware.Logger)
 	// eMiddleware.CORSWithConfig(eMiddleware.CORSConfig{})
 	e.Use(i.middlware.Recover)
+	e.GET("/ping", func(c echo.Context) error {
+		return c.String(http.StatusOK, "pong")
+	})
+
 	for _, route := range routes {
 		route.InitRoutes(e)
 	}

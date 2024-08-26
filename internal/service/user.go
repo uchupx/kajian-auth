@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -15,9 +16,10 @@ import (
 )
 
 type UserService struct {
-	UserRepo *repo.UserRepo
-	JWT      jwt.CryptService
-	Redis    *redis.Client
+	UserRepo   *repo.UserRepo
+	ClientRepo *repo.ClientRepo
+	JWT        jwt.CryptService
+	Redis      *redis.Client
 }
 
 func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Response, error) {
@@ -43,9 +45,9 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 
 	user.Model(model)
 
-	token, err := s.JWT.CreateJWTToken(1*time.Hour, user)
+	token, err := s.JWT.CreateAccessToken(1*time.Hour, user)
 	if err != nil {
-		return nil, fmt.Errorf("[UserService - Login] error when create token: %w", err)
+		return nil, fmt.Errorf("[UserService - Login] error when create access token: %w", err)
 	}
 
 	duration := 1 * time.Hour
@@ -64,6 +66,13 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 }
 
 func (s *UserService) SignUp(ctx context.Context, req dto.SignUpRequest) (*dto.Response, error) {
+	client, err := s.ClientRepo.FindAppsByKey(ctx, req.ClientKey)
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - SignUp] error when find client app: %w", err)
+	} else if client == nil {
+		return nil, errors.ErrNotFound
+	}
+
 	signPassword, err := s.JWT.CreateSignPSS(req.Password)
 	if err != nil {
 		return nil, fmt.Errorf("[UserService - SignUp] error when create signature password: %w", err)
@@ -72,10 +81,11 @@ func (s *UserService) SignUp(ctx context.Context, req dto.SignUpRequest) (*dto.R
 	now := time.Now()
 
 	newUser := dto.User{
-		Username: req.Username,
-		Password: signPassword,
-		Email:    req.Email,
-		Created:  now,
+		Username:    req.Username,
+		Password:    signPassword,
+		Email:       req.Email,
+		ClientAppId: client.ID.String,
+		Created:     now,
 	}
 
 	id, err := s.UserRepo.Insert(ctx, newUser.ToModel())
@@ -112,4 +122,42 @@ func (s *UserService) RetrieveUser(ctx context.Context, token string) (*dto.User
 	}
 
 	return &user, nil
+}
+
+func (s *UserService) AddClient(ctx context.Context, req dto.ClientPost) (*dto.Response, error) {
+
+	clientSecret, err := s.JWT.CreateSignPSS(RandomString(20))
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - AddClient] error when create signature password: %w", err)
+	}
+
+	data := dto.Client{
+		Name:   req.Name,
+		Key:    RandomString(20),
+		Secret: clientSecret,
+	}
+
+	id, err := s.ClientRepo.Insert(ctx, data.ToModel())
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - AddClient] error when insert client: %w", err)
+	}
+
+	return &dto.Response{
+		Status: 201,
+		Data: dto.EntityResponse{
+			Id:     id,
+			Entity: "client_apps",
+		},
+	}, nil
+}
+
+func RandomString(n int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }

@@ -14,10 +14,22 @@ import (
 	"github.com/uchupx/kajian-auth/config"
 )
 
+type AccessToken struct {
+	Data interface{} `json:"data"`
+	Exp  int64       `json:"exp"`
+}
+
+type RefreshToken struct {
+	Id  string `json:"id"`
+	Exp int64  `json:"exp"`
+}
+
 type CryptService interface {
 	CreateSignPSS(value string) (signatureStr string, err error)
 	Verify(value string, signature string) (resp bool, err error)
 	CreateJWTToken(expDuration time.Duration, content interface{}) (token *string, err error)
+	CreateRefreshToken(expDuration time.Duration, id string) (token *string, err error)
+	CreateAccessToken(expDuration time.Duration, content interface{}) (token *string, err error)
 	VerifyJWTToken(token string) (result interface{}, err error)
 }
 
@@ -130,6 +142,26 @@ func (s *cryptService) CreateJWTToken(expDuration time.Duration, content interfa
 	jwtServicecryptService := NewJWT(privateKey, publicKey)
 
 	return jwtServicecryptService.Create(expDuration, content)
+}
+
+func (s *cryptService) CreateRefreshToken(expDuration time.Duration, id string) (token *string, err error) {
+	exp := time.Now().Add(expDuration).Unix()
+
+	refreshToken := &RefreshToken{
+		Id:  id,
+		Exp: exp,
+	}
+
+	return s.CreateJWTToken(expDuration, refreshToken)
+}
+
+func (s *cryptService) CreateAccessToken(expDuration time.Duration, content interface{}) (token *string, err error) {
+	accessToken := &AccessToken{
+		Data: content,
+		Exp:  time.Now().Add(expDuration).Unix(),
+	}
+
+	return s.CreateJWTToken(expDuration, accessToken)
 }
 
 func (s *cryptService) VerifyJWTToken(token string) (result interface{}, err error) {

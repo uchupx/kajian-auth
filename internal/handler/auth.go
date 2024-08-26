@@ -13,6 +13,7 @@ type AuthHandler struct {
 func (a *AuthHandler) InitRoutes(e *echo.Echo) {
 	e.POST("/token", a.Auth)
 	e.POST("/sign-up", a.SignUp)
+	e.POST("/client", a.ClientAdd)
 }
 
 func (a *AuthHandler) Auth(c echo.Context) error {
@@ -36,6 +37,20 @@ func (a *AuthHandler) SignUp(c echo.Context) error {
 	}
 
 	res, err := a.UserService.SignUp(c.Request().Context(), req)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(201, res)
+}
+
+func (a *AuthHandler) ClientAdd(c echo.Context) error {
+	var req dto.ClientPost
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	res, err := a.UserService.AddClient(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}

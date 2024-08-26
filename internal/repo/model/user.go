@@ -4,8 +4,9 @@ import "database/sql"
 
 type User struct {
 	BaseModel
-	ID       sql.NullString `db:"id"`
-	Username sql.NullString `db:"username"`
+	ID          sql.NullString `db:"id"`
+	ClientAppID sql.NullString `db:"client_app_id"`
+	Username    sql.NullString `db:"username"`
 	// Name      sql.NullString `db:"name"`
 	Password  sql.NullString `db:"password"`
 	Email     sql.NullString `db:"email"`
