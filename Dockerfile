@@ -1,4 +1,4 @@
-FROM golang:1.20-bullseye as base
+FROM golang:1.23-bullseye as base
 
 # RUN adduser \
 #   --disabled-password \
@@ -17,11 +17,11 @@ RUN go mod tidy
 RUN go mod vendor
 RUN go mod verify
 
-# RUN go install github.com/securego/gosec/v2/cmd/gosec@latest
+RUN go install github.com/securego/gosec/v2/cmd/gosec@latest
 RUN go install golang.org/x/vuln/cmd/govulncheck@latest
 
 # Security Check
-# RUN gosec ./..
+RUN gosec ./..
 # Depedencies check
 RUN govulncheck -scan=package ./...
 
