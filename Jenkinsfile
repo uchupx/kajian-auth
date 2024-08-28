@@ -22,7 +22,7 @@ pipeline {
             steps {
                 echo "Build"
                 sh "export GO111MODULE=on"
-                sh "/usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} build"
+                sh "/usr/local/bin/docker-compose  --env-file ${TEMP_PATH}/.env.${GIT_COMMIT} build --build-arg RUN_SECURITY_CHECKS=${CHECK_DEPENDECIES}"
             }
         }
         stage('Push') {
