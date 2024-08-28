@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    parameters {
+        booleanParam(name: 'CHECK_DEPENDECIES', defaultValue: false, description: 'Chec dependencies')
+    }
     stages {
         stage('Preparing') {
             steps {
