@@ -23,7 +23,7 @@ RUN if [  "$RUN_SECURITY_CHECK" = "true" ]; then \
     go install github.com/securego/gosec/v2/cmd/gosec@latest && \
     go install golang.org/x/vuln/cmd/govulncheck@latest && \
     gosec ./.. && \
-    govulncheck -scan=package ./... \
+    govulncheck -scan=package ./... ; \
     fi
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /main .
