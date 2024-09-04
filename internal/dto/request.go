@@ -1,8 +1,15 @@
 package dto
 
 type AuthRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	GrantTypePassword
+	GrantType    string `json:"grant_type" validate:"required"`
+	ClientId     string `json:"client_id" validate:"required"`
+	ClientSecret string `json:"client_secret" validate:"required"`
+}
+
+type GrantTypePassword struct {
+	Username *string `json:"username"`
+	Password *string `json:"password"`
 }
 
 type SignUpRequest struct {

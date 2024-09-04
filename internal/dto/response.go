@@ -18,4 +18,5 @@ type TokenResponse struct {
 type EntityResponse struct {
 	Id     interface{} `json:"id"`
 	Entity string      `json:"entity"`
+	Meta   interface{} `json:"meta"`
 }

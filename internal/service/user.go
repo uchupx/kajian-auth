@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -12,6 +13,7 @@ import (
 	"github.com/uchupx/kajian-auth/internal/dto"
 	"github.com/uchupx/kajian-auth/internal/repo"
 	"github.com/uchupx/kajian-auth/internal/service/jwt"
+	"github.com/uchupx/kajian-auth/pkg"
 	"github.com/uchupx/kajian-auth/pkg/enums"
 )
 
@@ -24,7 +26,25 @@ type UserService struct {
 
 func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Response, error) {
 	var user dto.User
-	model, err := s.UserRepo.FindUserByUsernameEmail(ctx, req.Username)
+	if req.Username == nil || req.Password == nil {
+		return nil, fmt.Errorf("[UserService - Login] username or password is required")
+	}
+
+	client, err := s.ClientRepo.FindAppsByKey(ctx, req.ClientId)
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - Login] error when find client app: %w", err)
+	}
+
+	isClientValid, err := s.JWT.Verify(req.ClientSecret, client.Secret.String)
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - Login] error when verify client secret: %w", err)
+	}
+
+	if !isClientValid {
+		return nil, errors.ErrUnauthorized
+	}
+
+	model, err := s.UserRepo.FindUserByUsernameEmail(ctx, *req.Username)
 	if err != nil {
 		return nil, fmt.Errorf("[UserService - Login] error when find user by username: %w", err)
 	}
@@ -34,7 +54,7 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 	// 	return nil, fmt.Errorf("[UserService - Login] error when create signature password: %w", err)
 	// }
 
-	isValid, err := s.JWT.Verify(req.Password, model.Password.String)
+	isValid, err := s.JWT.Verify(*req.Password, model.Password.String)
 	if err != nil {
 		return nil, fmt.Errorf("[UserService - Login] error when verify value: %w", err)
 	}
@@ -52,7 +72,7 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 
 	duration := 1 * time.Hour
 
-	if err := s.Redis.Set(ctx, fmt.Sprintf(enums.RedisKeyAuthorizationToken, model.ID.String), *token, duration).Err(); err != nil {
+	if err := s.Redis.Set(ctx, fmt.Sprintf(enums.RedisKeyAuthorizationToken, strings.Split(*token, ".")[2]), pkg.JsonStringify(user), duration).Err(); err != nil {
 		return nil, fmt.Errorf("[UserService - Login] error when set redis: %w", err)
 	}
 
@@ -126,7 +146,8 @@ func (s *UserService) RetrieveUser(ctx context.Context, token string) (*dto.User
 
 func (s *UserService) AddClient(ctx context.Context, req dto.ClientPost) (*dto.Response, error) {
 
-	clientSecret, err := s.JWT.CreateSignPSS(RandomString(20))
+	secret := RandomString(20)
+	clientSecret, err := s.JWT.CreateSignPSS(secret)
 	if err != nil {
 		return nil, fmt.Errorf("[UserService - AddClient] error when create signature password: %w", err)
 	}
@@ -147,6 +168,9 @@ func (s *UserService) AddClient(ctx context.Context, req dto.ClientPost) (*dto.R
 		Data: dto.EntityResponse{
 			Id:     id,
 			Entity: "client_apps",
+			Meta: map[string]interface{}{
+				"secret": secret,
+			},
 		},
 	}, nil
 }

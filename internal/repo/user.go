@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	findUserByUsernameEmailQuery = "SELECT * FROM users WHERE username = ? OR email = ?"
+	findUserByUsernameEmailQuery = "SELECT id, client_app_id, username,password, email, created_at, updated_at FROM users WHERE username = ? OR email = ?"
 	insertUserQuery              = "INSERT INTO users(id, client_app_id, username, password, email, created_at) VALUES (?,?, ?, ?, ?, ?)"
 )
 
@@ -30,7 +30,15 @@ func (r *UserRepo) FindUserByUsernameEmail(ctx context.Context, val string) (*mo
 	defer stmt.Close()
 
 	row := stmt.FQueryRowxContext(ctx, val, val)
-	err = row.StructScan(&user)
+	err = row.Scan(
+		&user.ID,
+		&user.ClientAppID,
+		&user.Username,
+		&user.Password,
+		&user.Email,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
