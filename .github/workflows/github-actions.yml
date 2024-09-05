@@ -29,4 +29,4 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: uchupx/kajian-auth-go:${{ steps.vars.outputs.short_sha }}
+          tags: uchupx/kajian-auth-go:${{ steps.vars.outputs.short_sha }}-dev
