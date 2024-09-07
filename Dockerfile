@@ -10,6 +10,8 @@ FROM golang:1.23-bullseye as base
 #   small-user
 
 WORKDIR /app
+RUN mkdir -p /app/config
+RUN mkdir -p /app/logs
 
 COPY . .
 
@@ -31,6 +33,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /main .
 FROM gcr.io/distroless/static-debian11
 
 COPY --from=base /main .
+COPY --from=base /app/config /config
+COPY --from=base /app/logs /logs
 
 # USER small-user:small-user
 
