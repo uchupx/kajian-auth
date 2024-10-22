@@ -9,6 +9,7 @@ import (
 
 var configPath = []string{
 	"./",
+	"./config/",
 	// "/var/config/",
 	"/var/config/kajian_auth/",
 }
