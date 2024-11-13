@@ -3,8 +3,8 @@ package handler
 import (
 	"context"
 
-	"github.com/uchupx/kajian-auth/internal/service"
 	"github.com/uchupx/kajian-auth/pb"
+	"github.com/uchupx/kajian-auth/src/service"
 )
 
 type AuthGRPCHandler struct {

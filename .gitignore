@@ -6,6 +6,7 @@
 /vendor
 /server_config
 /redis_data
+/tmp
 
 
 # Config

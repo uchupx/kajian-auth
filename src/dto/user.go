@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	"github.com/uchupx/kajian-auth/internal/repo/model"
+	"github.com/uchupx/kajian-auth/src/repo/model"
 )
 
 type User struct {

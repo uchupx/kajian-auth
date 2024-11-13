@@ -7,7 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/uchupx/kajian-auth/config"
-	"github.com/uchupx/kajian-auth/internal"
+	"github.com/uchupx/kajian-auth/src"
 	"google.golang.org/grpc"
 )
 

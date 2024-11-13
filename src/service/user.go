@@ -10,18 +10,19 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/uchupx/kajian-api/pkg/errors"
-	"github.com/uchupx/kajian-auth/internal/dto"
-	"github.com/uchupx/kajian-auth/internal/repo"
-	"github.com/uchupx/kajian-auth/internal/service/jwt"
 	"github.com/uchupx/kajian-auth/pkg"
 	"github.com/uchupx/kajian-auth/pkg/enums"
+	"github.com/uchupx/kajian-auth/src/dto"
+	"github.com/uchupx/kajian-auth/src/repo"
+	"github.com/uchupx/kajian-auth/src/service/jwt"
 )
 
 type UserService struct {
-	UserRepo   *repo.UserRepo
-	ClientRepo *repo.ClientRepo
-	JWT        jwt.CryptService
-	Redis      *redis.Client
+	UserRepo         *repo.UserRepo
+	ClientRepo       *repo.ClientRepo
+	RefreshTokenRepo *repo.RefreshTokenRepo
+	JWT              jwt.CryptService
+	Redis            *redis.Client
 }
 
 func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Response, error) {
@@ -33,6 +34,8 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 	client, err := s.ClientRepo.FindAppsByKey(ctx, req.ClientId)
 	if err != nil {
 		return nil, fmt.Errorf("[UserService - Login] error when find client app: %w", err)
+	} else if client == nil {
+		return nil, errors.ErrNotFound
 	}
 
 	isClientValid, err := s.JWT.Verify(req.ClientSecret, client.Secret.String)
@@ -47,12 +50,9 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 	model, err := s.UserRepo.FindUserByUsernameEmail(ctx, *req.Username)
 	if err != nil {
 		return nil, fmt.Errorf("[UserService - Login] error when find user by username: %w", err)
+	} else if model == nil {
+		return nil, errors.ErrNotFound
 	}
-
-	// sign, err := s.JWT.CreateSignPSS(req.Password)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("[UserService - Login] error when create signature password: %w", err)
-	// }
 
 	isValid, err := s.JWT.Verify(*req.Password, model.Password.String)
 	if err != nil {
@@ -76,11 +76,25 @@ func (s *UserService) Login(ctx context.Context, req dto.AuthRequest) (*dto.Resp
 		return nil, fmt.Errorf("[UserService - Login] error when set redis: %w", err)
 	}
 
+	// refresh token
+
+	refreshToken, err := s.JWT.CreateAccessToken(24*time.Hour, user)
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - Login] error when create refresh token: %w", err)
+	}
+
+	exp := time.Now().Add(24 * time.Hour)
+
+	if _, err := s.RefreshTokenRepo.Insert(ctx, user.ID, user.ClientAppId, *token, exp); err != nil {
+		return nil, fmt.Errorf("[UserService - Login] error when insert refresh token: %w", err)
+	}
+
 	return &dto.Response{
 		Status: 200,
 		Data: dto.TokenResponse{
-			Token:   *token,
-			Expired: int64(duration.Seconds()),
+			Token:        *token,
+			RefreshToken: *refreshToken,
+			Expired:      int64(duration.Seconds()),
 		},
 	}, nil
 }
@@ -171,6 +185,46 @@ func (s *UserService) AddClient(ctx context.Context, req dto.ClientPost) (*dto.R
 			Meta: map[string]interface{}{
 				"secret": secret,
 			},
+		},
+	}, nil
+}
+
+func (s *UserService) RefreshToken(ctx context.Context, req dto.RefreshTokenRequest) (*dto.Response, error) {
+	client, err := s.ClientRepo.FindAppsByKey(ctx, req.ClientId)
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - RefreshToken] error when find client app: %w", err)
+	} else if client == nil {
+		return nil, errors.ErrNotFound
+	}
+
+	isClientValid, err := s.JWT.Verify(req.ClientSecret, client.Secret.String)
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - RefreshToken] error when verify client secret: %w", err)
+	}
+	if !isClientValid {
+		return nil, errors.ErrUnauthorized
+	}
+
+	user, err := s.RetrieveUser(ctx, req.RefreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - RefreshToken] error when retrieve user: %w", err)
+	}
+
+	token, err := s.JWT.CreateAccessToken(1*time.Hour, *user)
+	if err != nil {
+		return nil, fmt.Errorf("[UserService - RefreshToken] error when create access token: %w", err)
+	}
+
+	duration := 1 * time.Hour
+	if err := s.Redis.Set(ctx, fmt.Sprintf(enums.RedisKeyAuthorizationToken, strings.Split(*token, ".")[2]), pkg.JsonStringify(user), duration).Err(); err != nil {
+		return nil, fmt.Errorf("[UserService - RefreshToken] error when set redis: %w", err)
+	}
+
+	return &dto.Response{
+		Status: 200,
+		Data: dto.TokenResponse{
+			Token:   *token,
+			Expired: int64(duration.Seconds()),
 		},
 	}, nil
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/uchupx/kajian-api/pkg/db"
-	"github.com/uchupx/kajian-auth/internal/repo/model"
+	"github.com/uchupx/kajian-auth/src/repo/model"
 )
 
 const (

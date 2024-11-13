@@ -2,8 +2,8 @@ package handler
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/uchupx/kajian-auth/internal/dto"
-	"github.com/uchupx/kajian-auth/internal/service"
+	"github.com/uchupx/kajian-auth/src/dto"
+	"github.com/uchupx/kajian-auth/src/service"
 )
 
 type AuthHandler struct {
@@ -14,6 +14,7 @@ func (a *AuthHandler) InitRoutes(e *echo.Echo) {
 	e.POST("/token", a.Auth)
 	e.POST("/sign-up", a.SignUp)
 	e.POST("/client", a.ClientAdd)
+	e.POST("/refresh", a.RefreshToken)
 }
 
 func (a *AuthHandler) Auth(c echo.Context) error {
@@ -56,4 +57,16 @@ func (a *AuthHandler) ClientAdd(c echo.Context) error {
 	}
 
 	return c.JSON(201, res)
+}
+
+func (a *AuthHandler) RefreshToken(c echo.Context) error {
+	var req dto.RefreshTokenRequest
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+	res, err := a.UserService.RefreshToken(c.Request().Context(), req)
+	if err != nil {
+		return err
+	}
+	return c.JSON(200, res)
 }

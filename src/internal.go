@@ -12,12 +12,12 @@ import (
 	"github.com/uchupx/kajian-api/pkg/mysql"
 	kajianRedis "github.com/uchupx/kajian-api/pkg/redis"
 	"github.com/uchupx/kajian-auth/config"
-	"github.com/uchupx/kajian-auth/internal/handler"
-	"github.com/uchupx/kajian-auth/internal/middlware"
-	"github.com/uchupx/kajian-auth/internal/repo"
-	"github.com/uchupx/kajian-auth/internal/service"
-	"github.com/uchupx/kajian-auth/internal/service/jwt"
 	"github.com/uchupx/kajian-auth/pb"
+	"github.com/uchupx/kajian-auth/src/handler"
+	"github.com/uchupx/kajian-auth/src/middlware"
+	"github.com/uchupx/kajian-auth/src/repo"
+	"github.com/uchupx/kajian-auth/src/service"
+	"github.com/uchupx/kajian-auth/src/service/jwt"
 	"google.golang.org/grpc"
 )
 
@@ -27,8 +27,9 @@ type Internal struct {
 	redisClient *redis.Client
 
 	// repo
-	userRepo   *repo.UserRepo
-	clientRepo *repo.ClientRepo
+	userRepo         *repo.UserRepo
+	clientRepo       *repo.ClientRepo
+	refreshTokenRepo *repo.RefreshTokenRepo
 
 	//middlware
 	middlware *middlware.Middleware
@@ -114,10 +115,11 @@ func (i *Internal) AuthGRPCHandler(conf *config.Config) *handler.AuthGRPCHandler
 func (i *Internal) UserService(conf *config.Config) *service.UserService {
 	if i.userService == nil {
 		i.userService = &service.UserService{
-			UserRepo:   i.UserRepo(conf),
-			JWT:        i.JWTService(conf),
-			Redis:      i.RedisClient(conf),
-			ClientRepo: i.ClientRepo(conf),
+			UserRepo:         i.UserRepo(conf),
+			JWT:              i.JWTService(conf),
+			Redis:            i.RedisClient(conf),
+			ClientRepo:       i.ClientRepo(conf),
+			RefreshTokenRepo: i.RefreshTokenRepo(conf),
 		}
 	}
 
@@ -150,6 +152,14 @@ func (i *Internal) ClientRepo(conf *config.Config) *repo.ClientRepo {
 	}
 
 	return i.clientRepo
+}
+
+func (i *Internal) RefreshTokenRepo(conf *config.Config) *repo.RefreshTokenRepo {
+	if i.refreshTokenRepo == nil {
+		i.refreshTokenRepo = repo.NewRefreshTokenRepo(i.DB(conf))
+	}
+
+	return i.refreshTokenRepo
 }
 
 func (i *Internal) Middlware(conf *config.Config) *middlware.Middleware {
