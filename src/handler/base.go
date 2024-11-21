@@ -6,10 +6,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/uchupx/kajian-api/pkg/logger"
+	"github.com/uchupx/kajian-auth/src/middlware"
 )
 
 type BaseHandler interface {
-	InitRoutes(e *echo.Echo)
+	InitRoutes(e *echo.Echo, middleware *middlware.Middleware)
 }
 
 func HandleError(ctx echo.Context, err error) error {

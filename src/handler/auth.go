@@ -3,18 +3,22 @@ package handler
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/uchupx/kajian-auth/src/dto"
+	"github.com/uchupx/kajian-auth/src/middlware"
 	"github.com/uchupx/kajian-auth/src/service"
 )
 
 type AuthHandler struct {
-	UserService *service.UserService
+	AuthService *service.AuthService
 }
 
-func (a *AuthHandler) InitRoutes(e *echo.Echo) {
+func (a *AuthHandler) InitRoutes(e *echo.Echo, m *middlware.Middleware) {
 	e.POST("/token", a.Auth)
 	e.POST("/sign-up", a.SignUp)
 	e.POST("/client", a.ClientAdd)
 	e.POST("/refresh", a.RefreshToken)
+	e.GET("/status", func(c echo.Context) error {
+		return c.JSON(200, "Is Auth")
+	}, m.Authorization)
 }
 
 func (a *AuthHandler) Auth(c echo.Context) error {
@@ -23,7 +27,7 @@ func (a *AuthHandler) Auth(c echo.Context) error {
 		return err
 	}
 
-	res, err := a.UserService.Login(c.Request().Context(), req)
+	res, err := a.AuthService.Login(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
@@ -37,7 +41,7 @@ func (a *AuthHandler) SignUp(c echo.Context) error {
 		return err
 	}
 
-	res, err := a.UserService.SignUp(c.Request().Context(), req)
+	res, err := a.AuthService.SignUp(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
@@ -51,7 +55,7 @@ func (a *AuthHandler) ClientAdd(c echo.Context) error {
 		return err
 	}
 
-	res, err := a.UserService.AddClient(c.Request().Context(), req)
+	res, err := a.AuthService.AddClient(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
@@ -64,7 +68,7 @@ func (a *AuthHandler) RefreshToken(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
-	res, err := a.UserService.RefreshToken(c.Request().Context(), req)
+	res, err := a.AuthService.RefreshToken(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}

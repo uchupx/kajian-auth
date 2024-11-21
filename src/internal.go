@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/redis/go-redis/v9"
+	echo "github.com/labstack/echo/v4"
+	redis "github.com/redis/go-redis/v9"
 	"github.com/uchupx/kajian-api/pkg/db"
 	"github.com/uchupx/kajian-api/pkg/logger"
 	"github.com/uchupx/kajian-api/pkg/mysql"
 	kajianRedis "github.com/uchupx/kajian-api/pkg/redis"
+	"google.golang.org/grpc"
+
 	"github.com/uchupx/kajian-auth/config"
 	"github.com/uchupx/kajian-auth/pb"
 	"github.com/uchupx/kajian-auth/src/handler"
@@ -18,7 +20,6 @@ import (
 	"github.com/uchupx/kajian-auth/src/repo"
 	"github.com/uchupx/kajian-auth/src/service"
 	"github.com/uchupx/kajian-auth/src/service/jwt"
-	"google.golang.org/grpc"
 )
 
 type Internal struct {
@@ -36,16 +37,17 @@ type Internal struct {
 
 	// handler
 	authHandler     *handler.AuthHandler
+	userHandler     *handler.UserHandler
 	authGRPCHandler *handler.AuthGRPCHandler
 
 	// service
 	userService *service.UserService
+	authService *service.AuthService
 	jwtService  jwt.CryptService
 }
 
 func (i *Internal) DB(conf *config.Config) *db.DB {
 	if i.db == nil {
-		fmt.Printf("test")
 		for idx := 1; idx <= 3; idx++ {
 			db, err := mysql.NewConnection(mysql.DBPayload{
 				Host:     conf.Database.Host,
@@ -95,17 +97,27 @@ func (i *Internal) RedisClient(conf *config.Config) *redis.Client {
 func (i *Internal) AuthHandler(conf *config.Config) *handler.AuthHandler {
 	if i.authHandler == nil {
 		i.authHandler = &handler.AuthHandler{
-			UserService: i.UserService(conf),
+			AuthService: i.AuthService(conf),
 		}
 	}
 
 	return i.authHandler
 }
 
+func (i *Internal) UserHandler(conf *config.Config) *handler.UserHandler {
+	if i.userHandler == nil {
+		i.userHandler = &handler.UserHandler{
+			// AuthService: i.AuthService(conf),
+		}
+	}
+
+	return i.userHandler
+}
+
 func (i *Internal) AuthGRPCHandler(conf *config.Config) *handler.AuthGRPCHandler {
 	if i.authGRPCHandler == nil {
 		i.authGRPCHandler = &handler.AuthGRPCHandler{
-			UserService: i.UserService(conf),
+			AuthService: i.AuthService(conf),
 		}
 	}
 
@@ -124,6 +136,20 @@ func (i *Internal) UserService(conf *config.Config) *service.UserService {
 	}
 
 	return i.userService
+}
+
+func (i *Internal) AuthService(conf *config.Config) *service.AuthService {
+	if i.authService == nil {
+		i.authService = &service.AuthService{
+			UserRepo:         i.UserRepo(conf),
+			JWT:              i.JWTService(conf),
+			Redis:            i.RedisClient(conf),
+			ClientRepo:       i.ClientRepo(conf),
+			RefreshTokenRepo: i.RefreshTokenRepo(conf),
+		}
+	}
+
+	return i.authService
 }
 
 func (i *Internal) JWTService(conf *config.Config) jwt.CryptService {
@@ -164,14 +190,19 @@ func (i *Internal) RefreshTokenRepo(conf *config.Config) *repo.RefreshTokenRepo 
 
 func (i *Internal) Middlware(conf *config.Config) *middlware.Middleware {
 	if i.middlware == nil {
-		i.middlware = middlware.New(middlware.Config{})
+		i.middlware = middlware.New(middlware.Config{
+			Redis: i.redisClient,
+		})
 	}
 
 	return i.middlware
 }
 
 func (i *Internal) InitRoutes(conf *config.Config, e *echo.Echo) {
-	routes := []handler.BaseHandler{i.AuthHandler(conf)}
+	routes := []handler.BaseHandler{
+		i.AuthHandler(conf),
+		i.UserHandler(conf),
+	}
 	i.Middlware(conf)
 	// e.Use(i.middlware.Logger)
 	// eMiddleware.CORSWithConfig(eMiddleware.CORSConfig{})
@@ -181,7 +212,13 @@ func (i *Internal) InitRoutes(conf *config.Config, e *echo.Echo) {
 	})
 
 	for _, route := range routes {
-		route.InitRoutes(e)
+		route.InitRoutes(e, i.middlware)
+	}
+
+	if i.isDebug(conf) {
+		for _, route := range e.Routes() {
+			fmt.Printf("Route | Method: %s | Path: %s | Caller: %s \n", route.Method, route.Path, route.Name)
+		}
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 
 type AuthGRPCHandler struct {
 	pb.AuthorizationServiceServer
-	UserService *service.UserService
+	AuthService *service.AuthService
 }
 
 // GetUser is a function to get user data from jwt token (GRPC)
@@ -22,7 +22,7 @@ func (h *AuthGRPCHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (
 		return &res, nil
 	}
 
-	user, err := h.UserService.RetrieveUser(ctx, jwtToken)
+	user, err := h.AuthService.RetrieveUser(ctx, jwtToken)
 	if err != nil {
 		return &res, nil
 	}
